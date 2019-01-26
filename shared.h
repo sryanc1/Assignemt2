@@ -8,6 +8,7 @@
  *****************************************************************************/
 
 #ifndef SHARED_H
+
 #define SHARED_H
 /**
  * definition of the boolean type for the application 

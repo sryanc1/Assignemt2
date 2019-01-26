@@ -39,9 +39,9 @@ int main(int argc, char* argv[]) {
 		return EXIT_FAILURE;
 }
 
-/**
+/*****************************************************************************
  * common function name used for explaining how to use the program
- **/
+ *****************************************************************************/
 void print_usage(void) {
 	
 	const char error[] = {"There are to many file arguments." 

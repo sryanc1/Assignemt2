@@ -13,6 +13,7 @@
 #include <errno.h>
 #include "shared.h"
 #include "line.h"
+#include "helpers.h"
 
 #ifndef FILEIO_H
 #define FILEIO_H

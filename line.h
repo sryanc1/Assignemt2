@@ -8,6 +8,7 @@
  *****************************************************************************/
 
 #include "shared.h"
+#include "helpers.h"
 #include <assert.h>
 #include <ctype.h>
 #include <stdio.h>
@@ -36,4 +37,8 @@ struct line_list {
  * function prototypes for allocating, manipulating and freeing the line_list
  * and its components go here.
  **/
+void line_list_init(struct line_list*);
+struct line * line_construct(char * data, long len, long lineno);
+struct line_node * line_node_construct(struct line * line_struct, 
+								struct line_node * previous, long lineno);
 #endif

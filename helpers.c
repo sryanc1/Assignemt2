@@ -10,10 +10,10 @@
 #include "helpers.h"
 #include "repl.h"
 
-/**
+/*****************************************************************************
  * convenience function to allocate a string and opy the data across to the new
  * memory.
- **/
+ *****************************************************************************/
 char* strdup(const char orig[])
 {
         /* allocate space for the string */
@@ -29,10 +29,10 @@ char* strdup(const char orig[])
         return copy;
 }
 
-/**
+/*****************************************************************************
  * inserts newline characters to wrap lines at less than the number of
  * characters specified.
- **/
+ *****************************************************************************/
 void fold(char line[], long width)
 {
         long len = strlen(line);
@@ -71,9 +71,9 @@ void fold(char line[], long width)
         }
 }
 
-/**
+/*****************************************************************************
  * checks that a string only has spaces.
- **/
+ *****************************************************************************/
 BOOLEAN empty_string(const char string[])
 {
         long count;
@@ -86,4 +86,18 @@ BOOLEAN empty_string(const char string[])
                 }
         }
         return TRUE;
+}
+
+/*****************************************************************************
+ * a version of safemalloc
+ *****************************************************************************/
+void * safemalloc(size_t size, long lineno){
+	
+	void * result = malloc(size);
+	if (!result)
+	{
+		error_print("insufficient memory available, failed at line %l", lineno);
+		exit(EXIT_FAILURE);
+	}
+	return result;
 }

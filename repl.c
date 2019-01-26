@@ -8,7 +8,7 @@
  *****************************************************************************/
 
 #include "repl.h"
-/**
+/*****************************************************************************
  *
  * commands to be implemented for our repl:
  * - read(r): read a file into memory. Lines when read in must be wrapped at or
@@ -52,12 +52,12 @@
  *
  *   All commands may have 0 or more spaces between the command and the
  *   argument. For
- **/
+ *****************************************************************************/
 
-/**
+/*****************************************************************************
  * performs buffer clearning for the program. It is static as all i/o should
  * be implemented in this module.
- **/
+ *****************************************************************************/
 static void read_rest_of_line(void) {
         int ch;
         ch = getc(stdin);
@@ -66,24 +66,41 @@ static void read_rest_of_line(void) {
         clearerr(stdin);
 }
 
-/**
+/*****************************************************************************
  * implements the command interpreter for this application. It displays the
  * current prompt (based on whether the last action succeeded or not then
  * reads input then decides which command to invoke, then invokeds that command.
- **/
+ *****************************************************************************/
 void repl(const struct command commands[], char filename[]) {
 	
-	if (filename == NULL)
+	struct line_list* thelist;
+	/*Define a variable to hold the user selection*/
+	char selection[LINELEN+EXTRACHARS];
+	
+	/*Dysplay a prompt*/
+	printf("> ");
+	
+	/*Use fgets to populate the selection array*/
+	/*Continue until user hits return on an empty line or ctrl-D*/
+	while (fgets(selection, LINELEN+EXTRACHARS, stdin) != NULL && 
+	selection[0] != '\n') 
 	{
-		;
-	}
-		
+		/*Dysplay a prompt*/
+		printf("> ");		
+		/*Check if the entry is to long*/
+		if (selection[strlen(selection)-1] != '\n')
+		{
+			read_rest_of_line();
+			error_print("to many characters entered");
+		}	
+	}	
+	load_file(filename, thelist);
 }  
 
-/**
+/*****************************************************************************
  * acts as a proxy to printf. All output sent here will go to normal output via
  * "stdout"
- **/
+ *****************************************************************************/
 int normal_print(const char format[], ...) {
         va_list va_args;
         int output_chars;
@@ -97,11 +114,11 @@ int normal_print(const char format[], ...) {
         return output_chars;
 }
 
-/**
+/*****************************************************************************
  * acts as a proxy to printf, except the output gets sent to stderr, the
  * error file pointer. . All output sent here will go to normal output via
  * "stdout"
- **/
+ *****************************************************************************/
 int error_print(const char format[], ...) {
         va_list va_args;
         int output_chars;

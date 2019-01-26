@@ -10,14 +10,14 @@
 #include "command.h"
 #include "helpers.h"
 #include "repl.h"
-/**
+/*****************************************************************************
  * copy into the commands array the structures to represeent each function to be
  * called by the system. The command_index enum defines the order of the command
  * structures in this array. Please note that your solution is meant to scale
  * and make it easy to update and maintain. An approach of a simple hardcoding
  * of the elements will get 0 marks. eg: you should use a loop or a mem*
  * function to do this initialisation.
- **/
+ *****************************************************************************/
 void commands_init(struct command commands[])
 {
 	int i;
@@ -27,33 +27,33 @@ void commands_init(struct command commands[])
 	}
 }
 
-/**
+/*****************************************************************************
  * implements the "new file" command. You should just set the line list to be
  * an empty list
- **/
+ *****************************************************************************/
 BOOLEAN command_new(const char remainder[], struct line_list* thelist)
 {
         return FALSE;
 }
-/**
+/*****************************************************************************
  * handles a request to load a file into the linked list. The actual work of
  * loading the file should be done in fileio module.
- **/
+ *****************************************************************************/
 BOOLEAN command_read(const char remainder[], struct line_list* thelist)
 {
         return FALSE;
 }
 
-/**
+/*****************************************************************************
  * handles the saving of a file to disk. If no file is specified, the filename
  * that the file was specified under when loaded (if any) will be used.
- **/
+ *****************************************************************************/
 BOOLEAN command_write(const char remainder[], struct line_list* thelist)
 {
         return FALSE;
 }
 
-/**
+/*****************************************************************************
  * handles the printing of lines from the "file" loaded into memory. We need to
  * handle 3 cases: when no range of lines is asked for, print out the whole
  * file. When a single number is provided after the 'p', print just the line
@@ -62,68 +62,68 @@ BOOLEAN command_write(const char remainder[], struct line_list* thelist)
  *
  * 3: this is the third line of the file
  *
- **/
+ *****************************************************************************/
 BOOLEAN command_print(const char remainder[], struct line_list* thelist)
 {
         return FALSE;
 }
 
-/**
+/*****************************************************************************
  * inserts one or more lines into linked list, starting at the new line number
  * specified by the user. The new line number specified by the user must be
  * greater than or equal to 1 (the first line) and less than or equal to the
  * count of lines in the file plus one (when the user chooses to append to the
  * end of the file).
- **/
+ *****************************************************************************/
 BOOLEAN command_insert(const char remainder[], struct line_list* thelist)
 {
         return FALSE;
 }
 
-/**
+/*****************************************************************************
  * delete the lines at the line numbers specified in the remainder string.
- **/
+ *****************************************************************************/
 BOOLEAN command_delete(const char remainder[], struct line_list* thelist)
 {
         return FALSE;
 }
 
-/**
+/*****************************************************************************
  * handles a request for a search across the list for a string specified. The
  * output here should be as spcified in the assignment specification and help
  * documentation provided in the sample executable.
- **/
+ *****************************************************************************/
 BOOLEAN command_search(const char remainder[], struct line_list* thelist)
 {
         return FALSE;
 }
 
-/**
+/*****************************************************************************
  * performs the find and replace algorithm, including the processing of
  * user input from the repl. Check that there are two '/' characters in the
  * string separated by other chars. Duplicate the string to perform tokenization
  * on it. Iterate over the list replacing each instance of the search string
  * with the replacement. Print out each replacement made. Please note that
  * you should do much / most of this work in functions you create yourself.
- **/
+ *****************************************************************************/
 BOOLEAN command_replace(const char remainder[], struct line_list* thelist)
 {
         return FALSE;
 }
 
-/**
+/*****************************************************************************
  * handles the quitting of the program and freeing any allocated memory
- **/
+ *****************************************************************************/
 BOOLEAN command_quit(const char remainder[], struct line_list* thelist)
 {
         return FALSE;
 }
 
-/**
+/*****************************************************************************
  * handles providing help to the user. I've provided the sourcecode for this
  * function as I don't want you to be spending time copying and pasting text as
  * there's little learning involved.
- **/
+ *****************************************************************************/
 BOOLEAN command_help(const char remainder[], struct line_list* thelist)
 {
         (void)thelist;
