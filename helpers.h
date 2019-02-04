@@ -1,7 +1,7 @@
 /******************************************************************************
- * Student Name    :
- * RMIT Student ID :
- * COURSE CODE     :
+ * Student Name    : Craig Ryan
+ * RMIT Student ID : s3555490
+ * COURSE CODE     : COSC2138
  *
  * Startup code provided by Paul Miller for use in "Programming in C",
  * study period 4, 2018.
@@ -17,8 +17,9 @@
 
 #define DECIMAL 10
 
-void * safemalloc(size_t, long);
+void * safemalloc(size_t);
+
 void fold(char line[], long);
-char* strdup(const char[]);
+char * strdup(const char[]);
 BOOLEAN empty_string(const char[]);
 #endif

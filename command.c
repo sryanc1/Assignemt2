@@ -1,7 +1,7 @@
 /******************************************************************************
- * Student Name    :
- * RMIT Student ID :
- * COURSE CODE     :
+ * Student Name    : Craig Ryan
+ * RMIT Student ID : s3555490
+ * COURSE CODE     : COSC2138
  *
  * Startup code provided by Paul Miller for use in "Programming in C",
  * study period 4, 2018.
@@ -23,7 +23,7 @@ void commands_init(struct command commands[])
 	int i;
 	for (i=IND_NEW; i<IND_QUIT; ++i)
 	{
-		commands[i];
+		;
 	}
 }
 

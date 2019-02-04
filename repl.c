@@ -1,7 +1,7 @@
 /******************************************************************************
- * Student Name    :
- * RMIT Student ID :
- * COURSE CODE     :
+ * Student Name    : Craig Ryan
+ * RMIT Student ID : s3555490
+ * COURSE CODE     : COSC2138
  *
  * Startup code provided by Paul Miller for use in "Programming in C",
  * study period 4, 2018.
@@ -59,11 +59,15 @@
  * be implemented in this module.
  *****************************************************************************/
 static void read_rest_of_line(void) {
-        int ch;
-        ch = getc(stdin);
-        while (ch != '\n' && ch != EOF)
-                ;
-        clearerr(stdin);
+
+   int c;
+
+   /* read until the end of the line or end-of-file */   
+   while ((c = fgetc(stdin)) != '\n' && c != EOF)
+      ;
+
+   /* clear the error and end-of-file flags */
+   clearerr(stdin);
 }
 
 /*****************************************************************************
@@ -73,28 +77,70 @@ static void read_rest_of_line(void) {
  *****************************************************************************/
 void repl(const struct command commands[], char filename[]) {
 	
-	struct line_list* thelist;
 	/*Define a variable to hold the user selection*/
 	char selection[LINELEN+EXTRACHARS];
+	char * select;
+	/*Define a temp file in the case where no file is passed in*/
+	FILE * temp;
+	char tempfile[] = "temp.txt";
+	
+	/*Define and allocated memory for the master struct list*/
+	struct line_list* thelist;
+	if (!(thelist = malloc(sizeof(struct line_list))))
+	{
+		error_print("unable to allocate memory to run the program");
+		exit(EXIT_FAILURE);
+	}
+	
+	/*Create a temp file in the case where no file is passed in.
+	 *This will be passed to "load file" and instantiate a single node*/
+	if(!filename)
+	{	
+		temp = fopen(tempfile, "w");
+		fprintf(temp, "\n");
+		fclose(temp);
+		filename = tempfile;
+	}
+	
+	/*Load the file define by the user*/
+	if(!load_file(filename, thelist))
+	{
+		error_print("unable to load the file");
+		free_list(thelist);
+		exit(EXIT_FAILURE);
+	}
+	
+	/*Print the list*/
+	line_list_print(thelist);
+	
+	/*Save the list back to the input file*/
+	if(!save_file(filename, thelist))
+	{
+		error_print("unable to save the file");
+		free_list(thelist);
+		exit(EXIT_FAILURE);
+	}
 	
 	/*Dysplay a prompt*/
 	printf("> ");
 	
-	/*Use fgets to populate the selection array*/
-	/*Continue until user hits return on an empty line or ctrl-D*/
-	while (fgets(selection, LINELEN+EXTRACHARS, stdin) != NULL && 
+	/*Use fgets to populate the selection array
+	 *Continue until user hits return on an empty line or ctrl-D*/
+	while ((select = fgets(selection, LINELEN+1, stdin)) != NULL && 
 	selection[0] != '\n') 
 	{
 		/*Dysplay a prompt*/
-		printf("> ");		
+		printf("> ");	
+			
 		/*Check if the entry is to long*/
 		if (selection[strlen(selection)-1] != '\n')
 		{
 			read_rest_of_line();
+			select = NULL;
 			error_print("to many characters entered");
 		}	
-	}	
-	load_file(filename, thelist);
+	}
+	free_list(thelist);	
 }  
 
 /*****************************************************************************
@@ -104,12 +150,16 @@ void repl(const struct command commands[], char filename[]) {
 int normal_print(const char format[], ...) {
         va_list va_args;
         int output_chars;
+        
         /* initialise the variable args */
         va_start(va_args, format);
+        
         /* pass them to printf */
         output_chars = vprintf(format, va_args);
+        
         /* finish with processing the variable args */
         va_end(va_args);
+        
         /* return the number of chars written out */
         return output_chars;
 }
@@ -122,10 +172,13 @@ int normal_print(const char format[], ...) {
 int error_print(const char format[], ...) {
         va_list va_args;
         int output_chars;
+        
         /* initialise the variable args */
         va_start(va_args, format);
+        
         /* output preamble to an error message: */
         output_chars = fprintf(stderr, "Error: ");
+        
         /* print the error message */
         output_chars += vfprintf(stderr, format, va_args);
         output_chars += fprintf(stderr, "\n");

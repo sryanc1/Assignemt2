@@ -1,7 +1,7 @@
 /******************************************************************************
- * Student Name    :
- * RMIT Student ID :
- * COURSE CODE     :
+ * Student Name    : Craig Ryan
+ * RMIT Student ID : s3555490
+ * COURSE CODE     : COSC2138
  *
  * Startup code provided by Paul Miller for use in "Programming in C",
  * study period 4, 2018.
@@ -15,10 +15,10 @@ int main(int argc, char* argv[]) {
 	
 		/* the array of commands that can be used in this program */
 		struct command commands[NUM_COMMANDS];
-		
+
 		/* initialise the commands */
 		commands_init(commands);
-				
+	
 		/* if there are invalid arguments, display appropriate
 		 * error messages and exit */
 		if (argc > NUMARGS)

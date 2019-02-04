@@ -1,7 +1,7 @@
 /******************************************************************************
- * Student Name    :
- * RMIT Student ID :
- * COURSE CODE     :
+ * Student Name    : Craig Ryan
+ * RMIT Student ID : s3555490
+ * COURSE CODE     : COSC2138
  *
  * Startup code provided by Paul Miller for use in "Programming in C",
  * study period 4, 2018.
@@ -11,13 +11,13 @@
 #include "repl.h"
 
 /*****************************************************************************
- * convenience function to allocate a string and opy the data across to the new
+ * convenience function to allocate a string and copy the data across to the new
  * memory.
  *****************************************************************************/
 char* strdup(const char orig[])
 {
         /* allocate space for the string */
-        char* copy = (char*)malloc(strlen(orig) + 1);
+        char* copy = (char*)malloc((strlen(orig)*sizeof(char)) + 1);
         /* check that it succeeded */
         if (!copy)
         {
@@ -35,9 +35,11 @@ char* strdup(const char orig[])
  *****************************************************************************/
 void fold(char line[], long width)
 {
-        long len = strlen(line);
-        long count = 0;
-        long curcount = 0;
+        long len, count, curcount;
+        len = 0;
+        len = strlen(line);
+        count = 0;
+        curcount = 0;
 
         while (count < len)
         {
@@ -48,7 +50,7 @@ void fold(char line[], long width)
                         return;
                 }
                 if (line[count] == '\n')
-                {
+                {                        
                         curcount = 0;
                 }
                 if (curcount == width)
@@ -91,13 +93,36 @@ BOOLEAN empty_string(const char string[])
 /*****************************************************************************
  * a version of safemalloc
  *****************************************************************************/
-void * safemalloc(size_t size, long lineno){
+void * safemalloc(size_t size){
 	
 	void * result = malloc(size);
 	if (!result)
 	{
-		error_print("insufficient memory available, failed at line %l", lineno);
-		exit(EXIT_FAILURE);
+		error_print("insufficient memory available to load the file\n");
+		return NULL;
 	}
 	return result;
+}
+
+/*****************************************************************************
+ * freeing allocated memory
+ *****************************************************************************/
+void free_list(struct line_list * thelist){
+	
+	int linked_list_lines, i;
+	struct line_node * temp = NULL;
+	struct line_node * current_node = thelist->head;
+	linked_list_lines = thelist->num_lines;
+	
+	assert(thelist);
+	
+	for ( i=0 ; i<=linked_list_lines; ++i)
+	{
+		free(current_node->data->data);
+		free(current_node->data);
+		temp = current_node->next;
+		free(current_node);
+		current_node = temp;
+	} 	
+	free(thelist);
 }

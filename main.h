@@ -1,7 +1,7 @@
 /******************************************************************************
- * Student Name    :
- * RMIT Student ID :
- * COURSE CODE     :
+ * Student Name    : Craig Ryan
+ * RMIT Student ID : s3555490
+ * COURSE CODE     : COSC2138
  *
  * Startup code provided by Paul Miller for use in "Programming in C",
  * study period 4, 2018.
@@ -12,7 +12,7 @@
 #include <stdlib.h>
 #ifndef MAIN_H
 #define MAIN_H
-/* place any any data structure definitions or function declarations for
+/* place any data structure definitions or function declarations for
  * this module here
  */
 
