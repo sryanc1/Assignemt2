@@ -77,9 +77,12 @@ static void read_rest_of_line(void) {
  *****************************************************************************/
 void repl(const struct command commands[], char filename[]) {
 	
-	/*Define a variable to hold the user selection*/
-	char selection[LINELEN+EXTRACHARS];
-	char * select;
+	int command_possition = NOT_FOUND, i;	
+	char remainder[LINELEN+EXTRACHARS];
+	char good_prompt[] = "> ", error_prompt[] = "? ";
+	char * prompt;
+	BOOLEAN choice, func = FALSE;
+	
 	/*Define a temp file in the case where no file is passed in*/
 	FILE * temp;
 	char tempfile[] = "temp.txt";
@@ -102,47 +105,116 @@ void repl(const struct command commands[], char filename[]) {
 		filename = tempfile;
 	}
 	
-	/*Load the file define by the user*/
+	/*Load the file define by the user or a temp file if none is supplied*/
 	if(!load_file(filename, thelist))
 	{
 		error_print("unable to load the file");
-		free_list(thelist);
-		exit(EXIT_FAILURE);
+		free_nodes(thelist);
 	}
 	
 	/*Print the list*/
-	line_list_print(thelist);
+	if (!line_list_print(thelist))
+	{
+		free_nodes(thelist);
+	}
 	
 	/*Save the list back to the input file*/
 	if(!save_file(filename, thelist))
 	{
 		error_print("unable to save the file");
-		free_list(thelist);
-		exit(EXIT_FAILURE);
+		free_nodes(thelist);
 	}
 	
-	/*Dysplay a prompt*/
-	printf("> ");
-	
-	/*Use fgets to populate the selection array
-	 *Continue until user hits return on an empty line or ctrl-D*/
-	while ((select = fgets(selection, LINELEN+1, stdin)) != NULL && 
-	selection[0] != '\n') 
+	/*Set prompt to normal "good" prompt*/
+	prompt = good_prompt;	
+		 
+	for (i=0;i<5;++i)
 	{
 		/*Dysplay a prompt*/
-		printf("> ");	
-			
-		/*Check if the entry is to long*/
-		if (selection[strlen(selection)-1] != '\n')
+		printf("%s", prompt);
+		
+		/*Get a choice from the use*/
+		choice = repl_selection(commands, &command_possition, remainder);
+		
+		/*Check if a command array position is valid - */
+		if (command_possition >= IND_NEW && command_possition <= IND_QUIT)
 		{
-			read_rest_of_line();
-			select = NULL;
-			error_print("to many characters entered");
-		}	
+			/* - then call the function form the function pointer*/
+			func = commands[command_possition].func(remainder, thelist);		
+		}
+		
+		/*Ensure the choice and or functions are valid calls - */
+		if (choice == FALSE || func == FALSE)
+		{
+			/* - set prompt to error if they are not*/
+			prompt = error_prompt;
+		}
+		else 
+		{
+			/* - set prompt to good if they are ok*/
+			prompt = good_prompt;		
+		}
+		
 	}
-	free_list(thelist);	
-}  
+	if (thelist->head !=NULL)
+	{
+		free_nodes(thelist);
+	}
+	
+	free(thelist->file_name);
+	free(thelist);	
+} 
 
+/*****************************************************************************
+ * uses fgets to take the use commands. Finds the first non space character 
+ * and its position in the char array. The function then sets every thing 
+ * after the first char for the command function - ie the next functios 
+ * arguments - and the possition of the corresponding function in the 
+ * commands array. Returns TRUE is a command type is found, otherwise FALSE
+ *****************************************************************************/
+BOOLEAN repl_selection(const struct command commands[], 
+						int * command_possition, char * remainder) {
+	
+	/*Define a variable to hold the user selection*/
+	char selection[LINELEN+EXTRACHARS];	
+	int i, first_char;
+	
+	/*Initialise the command possition 
+	 * (in the command array) to "not found"*/
+	*command_possition = NOT_FOUND;
+		
+	fgets(selection, LINELEN+EXTRACHARS, stdin);
+	
+	if (selection[strlen(selection)-1] !='\n')
+	{
+		read_rest_of_line();
+		error_print("to many characters entered");
+		return FALSE;
+	}
+	else 
+	{
+		selection[strlen(selection)-1] = '\0';
+		first_char = space_check(selection);
+		if (first_char == NOT_FOUND)
+		{	
+			return FALSE;
+		}
+		else
+		{
+			for (i = 0; i < NUM_COMMANDS; ++i)
+			{
+				if(selection[first_char] == commands[i].type)
+				{
+					strcpy(remainder,selection+first_char+1);
+					*command_possition = i;
+					return TRUE;
+				}
+			}
+		}
+	}
+	return FALSE;
+}	
+		
 /*****************************************************************************
  * acts as a proxy to printf. All output sent here will go to normal output via
  * "stdout"
@@ -184,3 +256,4 @@ int error_print(const char format[], ...) {
         output_chars += fprintf(stderr, "\n");
         return output_chars;
 }
+

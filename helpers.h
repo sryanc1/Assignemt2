@@ -18,7 +18,7 @@
 #define DECIMAL 10
 
 void * safemalloc(size_t);
-
+int space_check(const char[]);
 void fold(char line[], long);
 char * strdup(const char[]);
 BOOLEAN empty_string(const char[]);

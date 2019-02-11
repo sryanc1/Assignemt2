@@ -21,5 +21,5 @@
 #define FIRST_CHAR 0
 BOOLEAN load_file(const char[], struct line_list*);
 BOOLEAN save_file(const char[], const struct line_list*);
-void free_list(struct line_list * thelist);
+
 #endif

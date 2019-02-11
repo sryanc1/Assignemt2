@@ -70,10 +70,36 @@ struct line * line_construct(char * string, long len, long lineno){
 	line_data->lineno = lineno;
 	return line_data;
 }
+
+/*****************************************************************************
+ * freeing allocated memory - frees memory from the furthest point 
+ * (ie the line data) then works back to each node. Each nodes "next"
+ * is assigned a temp position then the node is freed before moving 
+ * to the next. 
+ *****************************************************************************/
+void free_nodes(struct line_list * thelist){
+	
+	int linked_list_lines, i;
+	struct line_node * temp = NULL;
+	struct line_node * current_node = thelist->head;
+	linked_list_lines = thelist->num_lines;
+	
+	assert(thelist);
+	
+	for (i=0 ; i<=linked_list_lines; ++i)
+	{
+		free(current_node->data->data);
+		free(current_node->data);
+		temp = current_node->next;
+		free(current_node);
+		current_node = temp;
+	} 	
+}
+
 /**************************************************************************
  * function to print entire list
  *************************************************************************/
-void line_list_print(struct line_list * thelist){
+BOOLEAN line_list_print(struct line_list * thelist){
 	
 	int linked_list_lines, i;
 	struct line_node * current_node = thelist->head;
@@ -81,46 +107,52 @@ void line_list_print(struct line_list * thelist){
 	
 	assert(thelist);
 	
-	for ( i=0 ; i<=linked_list_lines; ++i)
+	for ( i=0; i<=linked_list_lines; ++i)
 	{
-		line_print(current_node);
+		if (line_print(current_node) == FALSE)
+		{
+			error_print("your file is too big");
+			return FALSE;
+		}
 		current_node = current_node->next;
 	} 	
+	return TRUE;
 }
 	
 	
 /**************************************************************************
- * function to print a sinle node line
+ * function to print a sinle node line - prints a space before the 
+ * text part in order to line them up. Prints up to 999,999 lines 
  *************************************************************************/
-void line_print(struct line_node * current_node){
+BOOLEAN line_print(struct line_node * current_node){
 	
 	long lineno = current_node->data->lineno;
 	char * lines = current_node->data->data;
 	
 	assert(current_node);
 	
-	if (lineno < 10)
+	if (lineno < DECIMAL)
+	{
+		printf("%lu:    ", lineno);
+	} 
+	else if (lineno < (DECIMAL * DECIMAL))
 	{
 		printf("%lu:   ", lineno);
-	} 
-	else if (lineno < 100)
+	}
+	else if (lineno < (DECIMAL * DECIMAL * DECIMAL))
 	{
 		printf("%lu:  ", lineno);
 	}
-	else if (lineno < 1000)
+	else if (lineno < (DECIMAL * DECIMAL * DECIMAL * DECIMAL))
 	{
 		printf("%lu: ", lineno);
-	}
-	else if (lineno < 10000)
-	{
-		printf("%lu:", lineno);
 	}
 	else
 	{
 		printf("WOW, thats a really big file - try breaking it in to"
-		"smaller ones");
-		exit(EXIT_FAILURE);
+		"smaller parts");
+		return FALSE;
 	}
 	printf("%s \n", lines);
-	
+	return TRUE;
 } 

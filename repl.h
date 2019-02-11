@@ -15,7 +15,9 @@
 enum input_result { IR_FAILURE, IR_SUCCESS, IR_RTM };
 #ifndef REPL_H
 #define REPL_H
+#define NOT_FOUND -1
 void repl(const struct command[], char[]);
 int normal_print(const char[], ...);
-int error_print(const char[], ...);
+BOOLEAN repl_selection(const struct command commands[], int* , char*s);
+
 #endif

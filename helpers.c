@@ -74,6 +74,23 @@ void fold(char line[], long width)
 }
 
 /*****************************************************************************
+ * checks a string array for the first non space char - returns its position.
+ *****************************************************************************/
+int space_check(const char string[])
+{
+        long count;
+        long len = strlen(string);
+        for (count = 0; count < len; ++count)
+        {
+                if (!isspace(string[count]))
+                {
+                        return count;
+                }
+        }
+        return NOT_FOUND;
+}
+
+/*****************************************************************************
  * checks that a string only has spaces.
  *****************************************************************************/
 BOOLEAN empty_string(const char string[])
@@ -89,7 +106,6 @@ BOOLEAN empty_string(const char string[])
         }
         return TRUE;
 }
-
 /*****************************************************************************
  * a version of safemalloc
  *****************************************************************************/
@@ -104,25 +120,4 @@ void * safemalloc(size_t size){
 	return result;
 }
 
-/*****************************************************************************
- * freeing allocated memory
- *****************************************************************************/
-void free_list(struct line_list * thelist){
-	
-	int linked_list_lines, i;
-	struct line_node * temp = NULL;
-	struct line_node * current_node = thelist->head;
-	linked_list_lines = thelist->num_lines;
-	
-	assert(thelist);
-	
-	for ( i=0 ; i<=linked_list_lines; ++i)
-	{
-		free(current_node->data->data);
-		free(current_node->data);
-		temp = current_node->next;
-		free(current_node);
-		current_node = temp;
-	} 	
-	free(thelist);
-}
+

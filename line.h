@@ -40,6 +40,8 @@ struct line_list {
 void line_list_init(struct line_list*);
 struct line * line_construct(char * data, long len, long lineno);
 struct line_node * line_node_construct(struct line * line_struct);
-void line_print(struct line_node * current_node);
-void line_list_print(struct line_list * thelist);
+BOOLEAN line_print(struct line_node * current_node);
+BOOLEAN line_list_print(struct line_list * thelist);
+int error_print(const char[], ...);
+void free_nodes(struct line_list * thelist);
 #endif

@@ -14,10 +14,10 @@ CFLAGS=-ansi -Wall -pedantic
 LFLAGS=
 
 #default compilation target
-all:wrong
+all:lineedit
 
 #link together the main executable
-wrong: $(OBJECTS)
+lineedit: $(OBJECTS)
 	$(CC) $(LFLAGS) $^ -o $@
 
 #compile each source file
@@ -35,4 +35,4 @@ sanitize: clean all
 
 .PHONY:clean
 clean:
-	rm -f wrong *.o *~
+	rm -f lineedit *.o *~

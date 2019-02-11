@@ -18,9 +18,9 @@ BOOLEAN load_file(const char fname[], struct line_list * thelist) {
 	
 	FILE * fp_read;		
 	long string_length, line_count;
-	char page_text[BUFSIZ+1];	/*holds a paragraph of text from the page/file*/
-	char * string;				/*points to our lines wraped at 80 chars*/
-	char new_line[1];			/*used for blank lines - line only has \n char*/
+	char page_text[BUFSIZ+1];/*holds a paragraph of text from the page/file*/
+	char * string;			 /*points to our lines wraped at 80 chars*/
+	char new_line[1];		 /*used for blank lines - line only has \n char*/
 	
 	/*set pointers for node and line structs*/ 
 	struct line_node * current_node = NULL;
@@ -71,9 +71,13 @@ BOOLEAN load_file(const char fname[], struct line_list * thelist) {
 			/*insert the read data into a line struct and check if it fails*/
 			((line_struct 
 			= line_construct(new_line, string_length, line_count)) == NULL
-			/*connect the line struct to a node to keep track and check failure*/
+			/*connect the line struct to a node to 
+			 * keep track and check failure*/
 			||(current_node = line_node_construct(line_struct)) == NULL)
 			{
+				/*if either the line or the node cannot be constucted,
+				 * close the file and 
+				 * return false to the REPL to free the list*/				
 				fclose(fp_read);
 				return FALSE;
 			}
@@ -85,13 +89,15 @@ BOOLEAN load_file(const char fname[], struct line_list * thelist) {
 			}
 			
 			/*link the nodes together - the address of the first node 
-			 * cannot be passed to a previous node as a previous does not exist*/			
+			 * cannot be passed to a previous node as a 
+			 * previous does not exist*/			
 			if(line_count != FIRST_NODE)
 			{
 				previous_node->next = current_node;
 			}
 			
-			/*previous node is redefined as the current node to link them together*/
+			/*previous node is redefined as the current 
+			 * node to link them together*/
 			previous_node = current_node;
 			
 			/*update the master struct line count*/
@@ -102,7 +108,8 @@ BOOLEAN load_file(const char fname[], struct line_list * thelist) {
 		} 
 		else 
 		{
-			/*add a new line character at a maximum line width of LINELEN - 80 */
+			/*add a new line character at a maximum 
+			 * line width of LINELEN - 80 */
 			fold(page_text, LINELEN);
 		
 			/*get the first non-blank line of the paragraph array*/
@@ -116,12 +123,17 @@ BOOLEAN load_file(const char fname[], struct line_list * thelist) {
 				string_length = strlen(string);
 				
 				if 
-				/*insert the read data into a line struct and check if it fails*/
+				/*insert the read data into a line 
+				 * struct and check if it fails*/
 				((line_struct 
 				= line_construct(string, string_length, line_count)) == NULL
-				/*connect the line struct to a node to keep track and check failure*/
+				/*connect the line struct to a node to 
+				 * keep track and check failure*/
 				||(current_node = line_node_construct(line_struct)) == NULL)
 				{
+					/*if either the line or the node cannot be constucted,
+					 * close the file and 
+					 * return false to the REPL to free the list*/
 					fclose(fp_read);
 					return FALSE;
 				}	
@@ -133,13 +145,15 @@ BOOLEAN load_file(const char fname[], struct line_list * thelist) {
 				}
 				
 				/*link the nodes together - the address of the first node 
-				 * cannot be passed to a previous node as a previous does not exist*/				
+				 * cannot be passed to a previous node as a previous does 
+				 * not exist*/				
 				if(line_count != FIRST_NODE)
 				{
 				previous_node->next = current_node;
 				}
 				
-				/*next node is redefined as the current node to link then together*/
+				/*next node is redefined as the current 
+				 * node to link then together*/
 				previous_node = current_node;
 				
 				/*update the master struct line count*/
