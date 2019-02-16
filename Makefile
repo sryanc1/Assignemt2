@@ -33,6 +33,7 @@ sanitize:CFLAGS+=-g -fsanitize=address
 sanitize:LFLAGS+=-fsanitize=address
 sanitize: clean all
 
+
 .PHONY:clean
 clean:
 	rm -f lineedit *.o *~

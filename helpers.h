@@ -22,4 +22,5 @@ int space_check(const char[]);
 void fold(char line[], long);
 char * strdup(const char[]);
 BOOLEAN empty_string(const char[]);
+BOOLEAN range_parser(const char remainder[], int * from, int * to, int num_lines);
 #endif

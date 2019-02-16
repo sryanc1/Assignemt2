@@ -21,7 +21,7 @@
 void commands_init(struct command commands[])
 {
 	int i;
-	struct command * command_struct = NULL;
+	struct command command_struct;
 	
 	enum command_type command_trigger[NUM_COMMANDS] = {
 		CT_NEW, 
@@ -48,27 +48,28 @@ void commands_init(struct command commands[])
 		command_help,
 		command_quit
 	};
-				
+	
+	/*Loop through the array of command triggers and function names - add these
+	 * to a struct and add the struct to the array of structs*/			
 	for (i=IND_NEW; i<=IND_QUIT; ++i)
 	{
 		command_struct = command_construct(command_trigger[i], 
 											command_func[i]);
 		/*dereference the command struct pointer 
 		 * and add the struct to the array*/
-		commands[i] = *command_struct;
+		commands[i] = command_struct;
 	}
 }
 
 /*****************************************************************************
  * builds the structs for the commands array
  *****************************************************************************/
-struct command * command_construct(enum command_type type, BOOLEAN 
+struct command command_construct(enum command_type type, BOOLEAN 
 (*command_func)(const char[], struct line_list*))
 {
-		struct command * command_struct;
-		command_struct = safemalloc(sizeof(struct command));
-		command_struct->type = type;
-		command_struct->func = command_func;
+		struct command command_struct;
+		command_struct.type = type;
+		command_struct.func = command_func;
 		return command_struct;
 }
 
@@ -78,28 +79,38 @@ struct command * command_construct(enum command_type type, BOOLEAN
  *****************************************************************************/
 BOOLEAN command_new(const char remainder[], struct line_list* thelist)
 {
-		struct line * line_struct = NULL;
+		
 		struct line_node * current_node = NULL;
 		struct line_node * next_node = NULL; 
 		
 		assert(thelist);
 		
+		/*Check there are no file args passed in*/
 		if (strlen(remainder) > 0)
 		{
 				error_print(
 				"trailing invalid chars found, please try again.\n");
 				return FALSE;
 		}	
-			
-		if (thelist->head != NULL)
+		
+		/*Check the list is note allready blank*/	
+		if (thelist->head->data != NULL)
 		{
+			/*free_nodes() frees everything except the list*/
 			free_nodes(thelist);
 		}
+		else 
+		{
+			error_print("a new blank list is already loaded");
+			return FALSE;
+		}
 		
-		line_struct = line_construct(" ", 1,  0);
+		if (!(current_node = safemalloc(sizeof(struct line_node))))
+		{
+			return FALSE;
+		}
 		
-		current_node = line_node_construct(line_struct);
-		
+		current_node->data = NULL;
 		current_node->next = next_node;
 		thelist->num_lines = 0;
 		thelist->head = current_node;        
@@ -112,21 +123,33 @@ BOOLEAN command_new(const char remainder[], struct line_list* thelist)
  *****************************************************************************/
 BOOLEAN command_read(const char remainder[], struct line_list* thelist)
 {
-		int first_char;
-		char file_name[LINELEN];
+		char * file_name;
 
 		if (thelist->head != NULL)
 		{
 			free_nodes(thelist);
 		}
-		first_char = space_check(remainder);
-
-		strcpy(file_name,remainder+first_char);
-
-		if (!(load_file(file_name, thelist)))
-		{	
+		
+		/*Create some space to copy the file name into - excluding any 
+		 * leading space chars*/
+		if(!(file_name = safemalloc(strlen(&remainder[space_check(remainder)])
+							+1*sizeof(char))))
+		
+		{
 			return FALSE;
 		}
+		
+		/*Copy the remainder (ie function args)*/
+		strcpy(file_name,&remainder[space_check(remainder)]);
+
+		/*Pass this to the load_file function*/
+		if (!(load_file(file_name, thelist)) || file_name == NULL)
+		{	
+			error_print("failed to read the file");
+			return FALSE;
+		}
+		
+		free(file_name);
 		return TRUE;
 }
 
@@ -139,11 +162,26 @@ BOOLEAN command_write(const char remainder[], struct line_list* thelist)
 		int copy_from;
 		char fname[LINELEN];
 		
+		/*Check a current / valid list is initialised*/
+		if(thelist->head == NULL)
+		{
+			error_print("A file is not currently loaded."
+						" Please load a file and try again");
+			return FALSE;
+		}
+		
 		if(strlen(remainder) == 0 && thelist->file_name == NULL)
 		{
 			error_print("no file name has been provided - please try again");
 			return FALSE;
 		}
+		
+		else if(strlen(remainder) > 0 && space_check(remainder) == NOT_FOUND)
+		{
+			error_print("no file name has been provided - please try again");
+			return FALSE;
+		}
+					
 		else if(strlen(remainder) == 0)
 		{
 			strcpy(fname,thelist->file_name);
@@ -173,18 +211,19 @@ BOOLEAN command_write(const char remainder[], struct line_list* thelist)
  *****************************************************************************/
 BOOLEAN command_print(const char remainder[], struct line_list* thelist)
 {
-		/*String pointers to point to parts of the arguments passed in*/
-		char * part1 = NULL;
-		char * part2 = NULL;
-		char * endptr;	
 		/*Ints to represent the print range*/
 		int print_to, print_from, i;
 		/*Int to represent the entire range - ie print bounds*/
-		int linked_list_lines = thelist->num_lines;
+		int num_lines = thelist->num_lines;
 		/*Pointer to the first node*/
 		struct line_node * current_node = thelist->head;
-		/*Somewhere to store the function arguments for manipulation*/
-		char arg[LINELEN] ;
+		
+		if (thelist->head == NULL)
+		{
+			error_print("A file is not currently loaded."
+						" Please load a file and try again");
+			return FALSE;
+		}
 		
 		/*Check if arguments are passed in - 
 		 * ie the remainder string is >0 */
@@ -194,59 +233,21 @@ BOOLEAN command_print(const char remainder[], struct line_list* thelist)
 			line_list_print(thelist);
 			return TRUE;
 		}
-		
-		/*Copy the remander to the args array for 
-		 * manipulation as the remainder is constant*/
-		strcpy(arg, remainder);
-		
-		/*Tokenise the first part of the argument - 
-		 * "part1" becomes the handle*/
-		part1 = strtok(arg, "-"); 
-		
-		/*Tokenise the second part - remains NULL if strtok fails here*/
-		part2 = strtok(NULL, "-"); 
-		
-		/*Set errno to zero - used to check if "string to long" fails as 
-		 * zero returns form this function on failure and is also a 
-		 * valid return number*/
-		errno = 0;
-		
-		/*Get the first number from the part1 string pointer*/
-		print_from = strtol(part1, &endptr, DECIMAL);
-		if (strlen(endptr) != 0 || errno != 0)
+			
+		if(range_parser(remainder, &print_from, &print_to, num_lines) == FALSE)
 		{
-			/*End ptr points any chars in the string - 
-			 * there should be none */
-			error_print("invalid arguments were passed in");
 			return FALSE;
 		}
 		
-		/*Check a second token has been set and repeat as above*/
-		if (part2 == NULL)
-		{
-			/*If not token was set - ie only one line to print*/
-			print_to = print_from;
-		}
-		else
-		{	
-			print_to = strtol(part2, &endptr, DECIMAL);
-			if (strlen(endptr) != 0 || errno != 0)
-			{
-				error_print("invalid arguments were passed in");
-				return FALSE;
-			}
-		}
-		
 		/*Check lines are not out of range*/
-		if (print_from < 0 || print_to > linked_list_lines)
+		if (print_from < 0 || print_to > num_lines)
 		{
-			error_print("lines from %l to %l are out of range", 
-						print_from, print_to);
+			printf("lines from %i to %i are out of range\n", print_from, print_to);
 			return FALSE;
 		}
 		
 		/*Finally loop through each node */
-        for(i=0; i<=linked_list_lines; ++i)
+        for(i=0; i<num_lines; ++i)
         {
 			/*and print the requested nodes*/
 			if (i >= print_from && i <= print_to)
@@ -267,8 +268,143 @@ BOOLEAN command_print(const char remainder[], struct line_list* thelist)
  *****************************************************************************/
 BOOLEAN command_insert(const char remainder[], struct line_list* thelist)
 {
-        printf("insert new file\n");
-        return TRUE;
+		/*Somewhere to store the user insertion text data*/
+		char * select = NULL;
+		char * text = NULL;
+		char * more_text = NULL;
+		char selection[BUFSIZ];
+		/*The point to insert new lines from and a counter variable*/
+		int insert_from, i = 0, num_lines = thelist->num_lines;
+		/*Nodes start at the head / holders for the list when it is broken
+		 * for insertion and to link them together again*/
+		struct line_node * current_node = thelist->head;
+		struct line_node * next_node = NULL;
+		struct line_node * node_link = NULL;
+        
+        /*Check a current / valid list is initialised*/
+		if(thelist->head == NULL)
+		{
+			error_print("A file is not currently loaded."
+						" Please load a file and try again");
+			return FALSE;
+		}
+		
+		/*Check if arguments are passed in - 
+		 * ie the remainder string is >0 */
+		if (strlen(remainder) == 0)
+		{
+			error_print("please enter the line number"
+						" to begin inserting from");
+			return FALSE;
+		}
+		
+		if(range_parser(remainder, &insert_from, &insert_from, num_lines) == FALSE)
+		{
+			return FALSE;
+		}	
+		
+		/*Display the insertion prompt*/
+		printf("%i:  ", insert_from);
+		
+		/*Continue until the user hits return on a blank line or
+		 * ctl-D is entered*/
+		while ((select = fgets(selection, BUFSIZ, stdin)) != NULL && 
+		selection[0] != '\n')
+		{
+			printf("%i:  ", insert_from);
+			
+			/*Check if the entry is to long*/
+			if (selection[strlen(selection)-1] != '\n')
+			{
+				select = NULL;
+				error_print("to many characters entered");
+			}
+			
+			/*Fisrt line is a special case as we need to set the amount of 
+			 * memory and copy the user entered text here. This allows for 
+			 * multiple paragraphs but ends the function if a '\n' is 
+			 * entered on a blank line or ctrl-D*/
+			if(i==0)
+			{
+				/*Allocate and initialise memory - user text is copied here*/
+				if(!(text = calloc(strlen(selection)+1, sizeof(char))))
+				{
+					error_print("unable to allocate memory for new lines");
+					return FALSE;
+				}
+			}
+			else
+			{
+				/*Allocate memory for the old and new user entered text here.
+				 * This adds space for the new paragrph and the old one*/
+				if(!(text = realloc(more_text, (strlen(text) + 
+				strlen(selection)+1) * sizeof(char))))
+				{
+					free(text);
+					error_print("unable to allocate memory for new lines");
+					return FALSE;
+				}
+			}
+			/*Copy the user text into the new memory location*/
+			more_text = strcat(text, selection);
+			
+			/*Counter is used to ditinguish the first block of user text*/
+			++i;
+		}
+		
+		/*New line required for returning function - select will == NULL
+		 * if the user enters ctrl-D*/
+		if (select == NULL)
+		{
+			printf("\n");
+		}		
+		
+		/*Loop until we find the line to insert the text from - if inserting
+		 * from line zero - this will fail! eg: never enters the for loop.
+		 * - handled further down*/
+		for (i=0; i<insert_from; ++i)
+		{
+			/*The actual insert is always 1 less than the user input*/
+			if(i == insert_from-1 )
+			{
+				/*Break the linked list and assign a place holder*/
+				next_node = current_node->next;
+				/*The new node is assiged here - and the line builder is
+				 * invoked - many nodes maybe added at this point 
+				 * - the final node is returned*/
+				node_link = line_builder(more_text, current_node, thelist);
+			}
+			current_node = current_node->next;
+		}
+		
+		/*Link the list together again*/
+		if(insert_from == 0)
+		{
+			/*Used if inserting from the begining of a blank / new list*/
+			node_link = line_builder(more_text, next_node, thelist);
+			
+			/*the line_builder() will link this to the master struct and 
+			 * return the last node that is built to be relinked to the 
+			 * list*/
+			node_link->next = current_node;
+			
+		}
+		else if (insert_from == thelist->num_lines-1)
+		{
+			/*Used if insertion is at the end of the list*/
+			node_link->next = NULL;
+		}
+		else
+		{
+			/*Used to link the place holder and the new nodes together*/
+			node_link->next = next_node;
+		}
+		
+		/*Renumber the lines*/
+		lines_renumber(thelist);
+		
+		free(text);
+		return TRUE;
 }
 
 /*****************************************************************************
@@ -276,8 +412,94 @@ BOOLEAN command_insert(const char remainder[], struct line_list* thelist)
  *****************************************************************************/
 BOOLEAN command_delete(const char remainder[], struct line_list* thelist)
 {
-        printf("delete new file\n");
-        return TRUE;
+		struct line_node * temp = NULL;
+		struct line_node * next_node = NULL;
+		struct line_node * current_node = thelist->head;
+		char blank[] = "";
+		/*Ints to represent the delete range*/
+		int delete_to, delete_from;
+		int i, num_lines = thelist->num_lines;
+		
+		if (thelist->head == NULL)
+		{
+			error_print("A file is not currently loaded."
+						" Please load a file and try again");
+			return FALSE;
+		}
+		
+		/*Check if arguments are passed in - 
+		 * ie the remainder string is >0 */
+		if (strlen(remainder) == 0)
+		{
+			error_print("please try again and enter the phrase you wish"
+						" to search");
+			return FALSE;
+		}
+			
+		if(range_parser(remainder, &delete_from, &delete_to, num_lines) == FALSE)
+		{
+			return FALSE;
+		}
+		
+		if(delete_from == FIRST_NODE && delete_to == num_lines-1)
+		{
+			command_new(blank, thelist);
+			return TRUE;
+		}
+				
+		/*Loop until we find the node to delect*/
+		for (i=0; i<=num_lines-1; ++i)
+		{
+			if (i == delete_from-1)
+			{
+				/*Break the linked list and assign a place holder*/
+				next_node = current_node;
+			}
+			
+			/*The actual deletion of nodes and lines*/
+			if (i >= delete_from && i <= delete_to)
+			{
+				free(current_node->data->data);
+				free(current_node->data);
+				temp = current_node->next;
+				free(current_node);
+				current_node = temp;
+				--thelist->num_lines;
+			}
+			
+			/*If the deletion lines dont macth - move to the next node*/
+			else 
+			{
+				current_node = current_node->next;
+			}
+			
+			/*Link the first node after the last deletion back to the list.
+			 * Note that the first node cannot be the head*/
+			if(i == delete_to && delete_from != 0)
+			{
+				next_node->next = current_node;
+			}
+			
+			/*Here the head node is reassigned to the master struct if 
+			 * deletion begins from the first node*/
+			else if(delete_from == 0 && i == delete_to)
+			{
+				thelist->head = current_node;
+			}
+			
+			/*If the last node is deleted, the places holders next 
+			 * becomes null*/
+			else if(delete_to == num_lines && i == num_lines)
+			{
+				next_node->next = NULL;
+			}
+		}
+		
+		/*Renumber the lines*/
+		lines_renumber(thelist);
+		
+				
+		return TRUE;
 }
 
 /*****************************************************************************
@@ -287,8 +509,41 @@ BOOLEAN command_delete(const char remainder[], struct line_list* thelist)
  *****************************************************************************/
 BOOLEAN command_search(const char remainder[], struct line_list* thelist)
 {
-        printf("search new file\n");
-        return TRUE;
+		char * arg = NULL;
+		struct line_node * current_node = thelist->head;
+		int i;
+        
+		if (thelist->head == NULL)
+		{
+			error_print("A file is not currently loaded."
+						" Please load a file and try again");
+			return FALSE;
+		}
+		
+		/*Check if arguments are passed in - 
+		 * ie the remainder string is >0 */
+		if (strlen(remainder) == 0)
+		{
+			error_print("please try again and enter the text you would"
+						" like to search for");
+			return FALSE;
+		}		
+		
+		/*Copy the remander to the args array for 
+		 * manipulation as the remainder is constant*/
+		arg = malloc(strlen(&remainder[space_check(remainder)])+1* sizeof(char));
+		strcpy(arg, &remainder[space_check(remainder)]);  
+		
+		for(i=0; i<thelist->num_lines; ++i)
+		{
+			if(strstr(current_node->data->data, arg))
+			{
+				line_print(current_node);
+			}
+			current_node = current_node->next;
+		}
+			    
+		return TRUE;
 }
 
 /*****************************************************************************
@@ -301,6 +556,7 @@ BOOLEAN command_search(const char remainder[], struct line_list* thelist)
  *****************************************************************************/
 BOOLEAN command_replace(const char remainder[], struct line_list* thelist)
 {
+        
         printf("replace new file\n");
         return TRUE;
 }
@@ -310,8 +566,14 @@ BOOLEAN command_replace(const char remainder[], struct line_list* thelist)
  *****************************************************************************/
 BOOLEAN command_quit(const char remainder[], struct line_list* thelist)
 {
-        printf("quit new file\n");
-        return TRUE;
+		if (thelist->head !=NULL)
+		{
+			free_nodes(thelist);
+		}
+	
+		free(thelist->file_name);
+		free(thelist);	
+		exit(EXIT_SUCCESS);
 }
 
 /*****************************************************************************

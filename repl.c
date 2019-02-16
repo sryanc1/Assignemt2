@@ -77,8 +77,8 @@ static void read_rest_of_line(void) {
  *****************************************************************************/
 void repl(const struct command commands[], char filename[]) {
 	
-	int command_possition = NOT_FOUND, i;	
-	char remainder[LINELEN+EXTRACHARS];
+	int command_possition = NOT_FOUND;	
+	char * remainder = NULL;
 	char good_prompt[] = "> ", error_prompt[] = "? ";
 	char * prompt;
 	BOOLEAN choice, func = FALSE;
@@ -128,19 +128,19 @@ void repl(const struct command commands[], char filename[]) {
 	/*Set prompt to normal "good" prompt*/
 	prompt = good_prompt;	
 		 
-	for (i=0;i<5;++i)
+	for (;;)
 	{
 		/*Dysplay a prompt*/
 		printf("%s", prompt);
 		
 		/*Get a choice from the use*/
-		choice = repl_selection(commands, &command_possition, remainder);
+		choice = repl_selection(commands, &command_possition, &remainder);
 		
 		/*Check if a command array position is valid - */
 		if (command_possition >= IND_NEW && command_possition <= IND_QUIT)
 		{
 			/* - then call the function form the function pointer*/
-			func = commands[command_possition].func(remainder, thelist);		
+			func = commands[command_possition].func(remainder, thelist);
 		}
 		
 		/*Ensure the choice and or functions are valid calls - */
@@ -153,16 +153,8 @@ void repl(const struct command commands[], char filename[]) {
 		{
 			/* - set prompt to good if they are ok*/
 			prompt = good_prompt;		
-		}
-		
+		}	
 	}
-	if (thelist->head !=NULL)
-	{
-		free_nodes(thelist);
-	}
-	
-	free(thelist->file_name);
-	free(thelist);	
 } 
 
 /*****************************************************************************
@@ -173,18 +165,31 @@ void repl(const struct command commands[], char filename[]) {
  * commands array. Returns TRUE is a command type is found, otherwise FALSE
  *****************************************************************************/
 BOOLEAN repl_selection(const struct command commands[], 
-						int * command_possition, char * remainder) {
+						int * command_possition, char ** remainder) {
 	
 	/*Define a variable to hold the user selection*/
 	char selection[LINELEN+EXTRACHARS];	
 	int i, first_char;
 	
+	if (*remainder != NULL)
+	{
+		free(*remainder);
+		*remainder = NULL;
+	}
 	/*Initialise the command possition 
 	 * (in the command array) to "not found"*/
 	*command_possition = NOT_FOUND;
 		
-	fgets(selection, LINELEN+EXTRACHARS, stdin);
+	/*Use fgets() for user input and check if the user entered a \n on a blank
+	 * line of pressed ctrl-D*/
+	if(fgets(selection, LINELEN+EXTRACHARS, stdin) == NULL || selection[0] == '\n')
+	{
+		/*If crtl-D is entered or a \n - the command possition is set to quit*/
+		*command_possition = IND_QUIT;
+		return TRUE;
+	}
 	
+	/*Check not to many chars are entered*/
 	if (selection[strlen(selection)-1] !='\n')
 	{
 		read_rest_of_line();
@@ -193,6 +198,8 @@ BOOLEAN repl_selection(const struct command commands[],
 	}
 	else 
 	{
+		/*NULL terminate the string and check for spaces - 
+		 * if only spaces are found - return false*/
 		selection[strlen(selection)-1] = '\0';
 		first_char = space_check(selection);
 		if (first_char == NOT_FOUND)
@@ -201,11 +208,20 @@ BOOLEAN repl_selection(const struct command commands[],
 		}
 		else
 		{
+			/*Now loop through the command array and check if the command
+			 * exists*/
 			for (i = 0; i < NUM_COMMANDS; ++i)
 			{
 				if(selection[first_char] == commands[i].type)
 				{
-					strcpy(remainder,selection+first_char+1);
+					/*Allocate some memory to store the remaining 
+					 * (function arguments) and set these values*/
+					if (!(*remainder = safemalloc((strlen(selection)+1)* 
+							sizeof(char))))
+					{
+						return FALSE;
+					}
+					strcpy(*remainder,selection+first_char+1);
 					*command_possition = i;
 					return TRUE;
 				}

@@ -17,8 +17,7 @@
 
 #ifndef FILEIO_H
 #define FILEIO_H
-#define FIRST_NODE 0
-#define FIRST_CHAR 0
+
 BOOLEAN load_file(const char[], struct line_list*);
 BOOLEAN save_file(const char[], const struct line_list*);
 

@@ -120,4 +120,92 @@ void * safemalloc(size_t size){
 	return result;
 }
 
-
+/*****************************************************************************
+ * a function to parse the range of lines to be maniplulated.
+ *****************************************************************************/
+BOOLEAN range_parser(const char remainder[], int * from, int * to, int num_lines){
+	
+	/*String pointers to point to parts of the arguments passed in*/
+	char * arg = NULL; 
+	char * part1 = NULL;
+	char * part2 = NULL;
+	char * endptr;	
+	int num_from, num_to;
+		
+	if (space_check(remainder) == NOT_FOUND)
+	{
+		error_print("invalid arguments were passed in");
+		return FALSE;
+	}
+		
+	/*Copy the remander to the args array for 
+	 * manipulation as the remainder is constant*/
+	arg = malloc(strlen(remainder)+1* sizeof(char));
+	strcpy(arg, remainder); 
+	
+	
+	/*Tokenise the first part of the argument - 
+	 * "part1" becomes the handle*/
+	part1 = strtok(arg, "-"); 
+	
+	/*Tokenise the second part - remains NULL if strtok fails here*/
+	part2 = strtok(NULL, "-"); 
+	
+	/*Set errno to zero - used to check if "string to long" fails as 
+	 * zero returns form this function on failure and is also a 
+	 * valid return number*/
+	errno = 0;
+	
+	/*Get the first number from the part1 string pointer*/
+	num_from = strtol(part1, &endptr, DECIMAL);
+	if (space_check(endptr) != NOT_FOUND || errno != 0)
+	{
+		/*End ptr points any chars in the string - 
+		 * there should be none */
+		error_print("invalid arguments were passed in");
+		free(arg);
+		return FALSE;
+	}
+	
+	if (num_from >= num_lines)
+	{
+		/*Checking that the range is does note begin after the last node */
+		if(num_lines == 0)
+		{
+			num_from = num_lines;
+		}
+		else
+		{
+			num_from = num_lines-1;
+		}
+	}
+	
+	/*Check a second token has been set and repeat as above*/
+	if(part2 == NULL)
+	{
+		/*If no token was set*/
+		num_to = num_from;
+	}
+	else
+	{	
+		num_to = strtol(part2, &endptr, DECIMAL);
+		
+		if(num_to >= num_lines)
+		{
+			num_to = num_lines-1;
+		}
+		
+		if(num_to < num_from || 
+		space_check(endptr) != NOT_FOUND || errno != 0)
+		{
+			error_print("invalid arguments were passed in");
+			free(arg);
+			return FALSE;
+		}
+	}	
+	
+	*to = num_to;
+	*from = num_from;
+	free(arg);
+	return TRUE;
+}

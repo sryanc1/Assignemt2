@@ -15,7 +15,6 @@ int main(int argc, char* argv[]) {
 		
 		/* the array of commands that can be used in this program */
 		struct command commands[NUM_COMMANDS];
-		int i;
 		
 		/* initialise the commands */
 		commands_init(commands);
@@ -37,13 +36,7 @@ int main(int argc, char* argv[]) {
 		{
 			repl(commands, FILEARG);
 		}
-		
-		
-		for (i=0; i<=NUM_COMMANDS; ++i)
-		{ 
-			printf("%d\n", commands[i].type);
-			free(commands+i);	
-		} 	
+			
 		return EXIT_SUCCESS;
 }
 

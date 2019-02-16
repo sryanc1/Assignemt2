@@ -18,6 +18,6 @@ enum input_result { IR_FAILURE, IR_SUCCESS, IR_RTM };
 #define NOT_FOUND -1
 void repl(const struct command[], char[]);
 int normal_print(const char[], ...);
-BOOLEAN repl_selection(const struct command commands[], int* , char*s);
+BOOLEAN repl_selection(const struct command commands[], int* , char**);
 
 #endif

@@ -48,7 +48,7 @@ struct command {
 };
 
 #define NUM_COMMANDS 10
-struct command * command_construct(enum command_type, BOOLEAN (*command_func)
+struct command command_construct(enum command_type, BOOLEAN (*command_func)
 (const char[], struct line_list*));
 void commands_init(struct command commands[]);
 BOOLEAN command_new(const char[], struct line_list*);
